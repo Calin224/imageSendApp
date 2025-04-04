@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Încărcare imagini</title>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        #preview { max-width: 100%; max-height: 300px; margin: 20px 0; }
+        button { padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Aplicație de încărcare imagini</h2>
+    
+    <button id="captureBtn">Capturează imagine</button>
+    <button id="uploadBtn" disabled>Încarcă pe server</button>
+    
+    <div>
+        <img id="preview" style="display: none;">
+    </div>
+    
+    <input type="file" id="fileInput" accept="image/*" capture="camera" style="display: none;">
+    
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const captureBtn = document.getElementById('captureBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const preview = document.getElementById('preview');
+        
+        let imageFile = null;
+        
+        captureBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            imageFile = e.target.files[0];
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(imageFile);
+            }
+        });
+        
+        uploadBtn.addEventListener('click', async () => {
+            if (!imageFile) return;
+            
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            try {
+                const response = await fetch('http://192.168.107.111:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                alert(result.success ? 'Încărcare reușită!' : 'Eroare la încărcare');
+            } catch (error) {
+                alert('Eroare la comunicarea cu serverul');
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
